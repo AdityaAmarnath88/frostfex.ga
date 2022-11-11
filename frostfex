@@ -1,0 +1,90 @@
+import cv2 
+import numpy as np
+import matplotlib as plt
+import datetime
+import os
+import time
+import smtplib
+import sounddevice as sound
+from scipy.io.wavfile import write
+import wavio as wv
+import pyaudio
+from moviepy.editor import *
+import moviepy.editor as mpe
+
+cap = cv2.VideoCapture(0) 
+face_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_frontalface_default.xml')
+body_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_fullbody_default.xml')
+
+detection = False
+detection_stopped_time = None
+timer_started = False
+SECONDS_TO_RECORD_AFTER_DETECTION = 5
+
+frame_size=(int(cap.get(3)), int(cap.get(4)))
+fourcc = cv2.VideoWriter_fourcc(*'mp4v')
+while(True):
+    _, frame = cap.read()
+    gray=cv2.cvtColor(frame,cv2.COLOR_BGR2GRAY)
+    fase_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_frontalface_default.xml')
+    faces =face_cascade.detectMultiScale(gray, 1.2,5)
+    bodies=face_cascade.detectMultiScale(gray,1.2,5)
+    
+    if len(faces) + len(bodies) >0:
+        if detection :
+            timer_started = False #To keep a timer ready and start it now wehen the body is still in detection
+            
+        else: # if we detect i or more body but we have detection = false
+            detection = True
+            current_time=datetime.datetime.now().strftime('%d-%m-%Y-%H-%M-%S')
+            out = cv2.VideoWriter(
+                "v1.mp4", fourcc, 20,frame_size)
+            print('Started Recording!!')
+            print({current_time})
+            freq = 44100
+            duration =10
+            recording = sound.rec(int(duration*freq), samplerate= freq,channels =2)
+            sound.wait()
+            write("v2.mp4", freq,recording)
+            #server = smtplib.SMTP('smtp.gmail.com', 587)
+            #server.starttls()
+            #server.login('aditya.amarnath88@gmail.com', 'pdubvxbfbcxwkgvn')
+            #server.sendmail('fexfrost1@gmail.com', 'aditya.amarnath88@gmail.com', 'An intruder has been detected')
+            #print('A security mail has been sent')
+            
+    elif detection:
+        if timer_started:
+            if time.time() - detection_stopped_time >= SECONDS_TO_RECORD_AFTER_DETECTION:
+                detection = False
+                timer_started = False
+                out.release()
+                print('Stop recording!!')
+            
+        else:
+            timer_started =True
+            detection_stopped_time = time.time()
+            
+    cv2.imshow('Camera',frame)  
+    
+    if detection:
+        out.write(frame)
+    
+    if cv2.waitKey(1) == ord('q'):  
+        break     
+out.release()
+cap.release()                       
+cv2.destroyAllWindows()
+# Import everything needed to edit video clips
+from moviepy.editor import *
+  
+# loading video dsa gfg intro video
+clip = VideoFileClip("v1.mp4")
+    
+# loading audio file
+audioclip = AudioFileClip("v2.mp4")
+  
+# adding audio to the video clip
+videoclip = clip.set_audio(audioclip)
+  
+# showing video clip
+videoclip.ipython_display()
