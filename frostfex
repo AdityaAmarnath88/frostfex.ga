@@ -46,11 +46,11 @@ while(True):
             recording = sound.rec(int(duration*freq), samplerate= freq,channels =2)
             sound.wait()
             write("v2.mp4", freq,recording)
-            #server = smtplib.SMTP('smtp.gmail.com', 587)
-            #server.starttls()
-            #server.login('aditya.amarnath88@gmail.com', 'pdubvxbfbcxwkgvn')
-            #server.sendmail('fexfrost1@gmail.com', 'aditya.amarnath88@gmail.com', 'An intruder has been detected')
-            #print('A security mail has been sent')
+            server = smtplib.SMTP('smtp.gmail.com', 587)
+            server.starttls()
+            server.login('aditya27.amarnath@gmail.com', 'nqbheynhzatirnrs')
+            server.sendmail('aditya27.amarnath@gmail.com', 'rumu.debu@gmail.com', 'Hello an intruder has been detected at your house Precautions to be taken--call the police' )
+            print('A security mail has been sent')   
             
     elif detection:
         if timer_started:
@@ -65,6 +65,15 @@ while(True):
             detection_stopped_time = time.time()
             
     cv2.imshow('Camera',frame)  
+    
+    if detection:
+        out.write(frame)
+    
+    if cv2.waitKey(1) == ord('q'):  
+        break     
+out.release()
+cap.release()                       
+cv2.destroyAllWindows() 
     
     if detection:
         out.write(frame)
